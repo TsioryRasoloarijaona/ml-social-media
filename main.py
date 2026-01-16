@@ -9,7 +9,7 @@ import joblib
 from utils import utils 
 
 try:
-    model = joblib.load("rebuild/model/model_v2.pkl")
+    model = joblib.load("rebuild/model/model_v4.pkl")
 except FileNotFoundError:
     print("Model or label encoder files not found. Please ensure they are in the correct path.")
     
