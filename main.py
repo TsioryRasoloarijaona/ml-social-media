@@ -1,47 +1,48 @@
 from fastapi import FastAPI , HTTPException
-from pydantic import BaseModel
-import joblib
 import numpy as np
 import uvicorn
+import utils
+from types_classes import request_type
+import pandas as pd
+import joblib
+from utils import utils 
 
 try:
-    model = joblib.load("xgboost_instagram_model.pkl")
-    le_type = joblib.load("le_content_type.pkl")
-    le_lang = joblib.load("le_language.pkl")
+    model = joblib.load("rebuild/model/model.pkl")
+    le_day = joblib.load("rebuild/encoder/le_day.pkl")
+    le_type = joblib.load("rebuild/encoder/le_type.pkl")
 except FileNotFoundError:
     print("Model or label encoder files not found. Please ensure they are in the correct path.")
     
 app = FastAPI()
 
-class PostRequest(BaseModel):
-    type: str
-    lang: str
-    content_length: int
-    description: str
-    hashtags: str
-    follower_count: int
-    time: int
+
 
 @app.post("/predict")
-def predict(data : PostRequest):
+def predict(data : request_type):
     try:
-        content_type = le_type.transform([data.type])[0]
-        language = le_lang.transform([data.lang])[0]
-        content_description = len(data.description)
-        hashtags_count = data.hashtags.count("#") 
-        features = np.array([[content_type,
-                              language,
-                              data.content_length,
-                              content_description,
-                              hashtags_count,
-                              data.follower_count,
-                              data.time]])
-        log_prediction = model.predict(features)
-        log_pred = log_prediction.item()
-        prediction = np.exp(log_pred) - 1
+        dt = pd.to_datetime(data.date_time)
+        content_type = le_type.transform([data.content_type])[0]
+        content_length = data.content_length
+        follower_count = data.follower_count
+        day = le_day.transform([dt.day_name()])[0]
+        hour = dt.hour
+        description_score = utils.calculate_description_score(data.description)
+        hashtags_count = utils.count_hashtags(data.hashtags)
+        description_word_count = utils.count_description_words(data.description)
+        
+        feature = np.array([[content_type,
+                            content_length,
+                            follower_count,
+                            day,
+                            hour,
+                            description_score,
+                            hashtags_count,
+                            description_word_count]])
+        prediction = model.predict(feature)[0]
+        
         
         return {
-            
             "predicted_engagement_rate": round(float(prediction), 2) ,
             "unit": "percentage",
         }
