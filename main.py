@@ -22,9 +22,11 @@ def predict(data : request_type):
     try:
         feature = utils.transform_request_to_features(data)
         prediction = model.predict(feature)[0]
+        risk_level = "Low" if prediction < 1 else "Medium" if prediction < 2 else "High"
         return {
             "predicted_engagement_rate": round(float(prediction), 2) ,
             "unit": "percentage",
+            "risk_level": risk_level
         }
         
     except Exception as e:
