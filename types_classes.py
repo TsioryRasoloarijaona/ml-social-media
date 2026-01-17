@@ -1,8 +1,6 @@
 from typing import Literal
 from pydantic import BaseModel
 class request_type(BaseModel):
-    content_type: Literal["video", "image", "carousel"]
-    content_length: int
     follower_count: int
     date_time: str
     description: str
