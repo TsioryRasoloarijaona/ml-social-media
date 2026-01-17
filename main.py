@@ -19,10 +19,10 @@ app = FastAPI()
 def predict(data : request_type):
     try:
         feature = transform_request_to_features(data)
-        prediction = model.predict(feature)[0]
+        prediction = model.predict(feature)[0] * 10
         risk_level = "Low" if prediction < 1 else "Medium" if prediction < 3 else "High"
         return {
-            "predicted_engagement_rate": round(float(prediction*10), 2) ,
+            "predicted_engagement_rate": round(float(prediction), 2) ,
             "unit": "percentage",
             "risk_level": risk_level
         }
