@@ -7,7 +7,7 @@ import joblib
 from utils.mapper_request import transform_request_to_features
 
 try:
-    model = joblib.load("rebuild/model/model_v7.pkl")
+    model = joblib.load("rebuild/model/model_v6.pkl")
 except FileNotFoundError:
     print("Model or label encoder files not found. Please ensure they are in the correct path.")
     
@@ -19,7 +19,7 @@ app = FastAPI()
 def predict(data : request_type):
     try:
         feature = transform_request_to_features(data)
-        prediction = model.predict(feature)[0] * 10
+        prediction = model.predict(feature)[0]
         risk_level = "Low" if prediction < 1 else "Medium" if prediction < 3 else "High"
         return {
             "predicted_engagement_rate": round(float(prediction), 2) ,
